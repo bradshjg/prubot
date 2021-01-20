@@ -2,6 +2,8 @@
 
 require 'rack/test'
 
+require 'prubot'
+
 RSpec.describe Prubot do
   include Rack::Test::Methods
 
