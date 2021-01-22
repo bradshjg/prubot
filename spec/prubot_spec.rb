@@ -121,5 +121,14 @@ RSpec.describe Prubot do
 
       expect(json_response).to eq expected_response
     end
+
+    it 'unkown event with unknown action returns unknown response' do
+      expected_response = { 'status' => 'MISS',
+                            'description' => { 'unknown' => 'no matching handlers',
+                                               'unknown.unknown' => 'no matching handlers' } }
+      event 'unknown', { action: 'unknown' }
+
+      expect(json_response).to eq expected_response
+    end
   end
 end
