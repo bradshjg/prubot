@@ -90,7 +90,7 @@ RSpec.describe Prubot do
 
     it 'returns 404 for unknown event' do
       event 'unknown'
-      expect(last_response.status).to eq 404
+      expect(last_response.not_found?).to be(true)
     end
 
     it 'returns foo response for foo event' do
