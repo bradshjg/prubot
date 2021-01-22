@@ -9,32 +9,35 @@ RSpec.describe Prubot do
     expect(Prubot::VERSION).not_to be nil
   end
 
-  it 'is instantiated unconfigured' do
-    app = Prubot::Application.new
-    expect(app.configured?).to eq false
+  describe '#configured?' do
+    subject(:app) { Prubot::Application.new }
+
+    it 'is instantiated unconfigured' do
+      expect(app.configured?).to eq false
+    end
+
+    it 'is configured once configure is called' do
+      app.configure(id: 1, key: 'testkey', secret: 'testsecret')
+      expect(app.configured?).to eq true
+    end
   end
 
-  it 'will hold valid configuration' do
-    app = Prubot::Application.new
-    expected_config = { id: 1, key: 'testkey', secret: 'testsecret' }
-    app.configure(**expected_config)
-    expect(app.config).to eq expected_config
-  end
+  describe '#configure' do
+    subject(:app) { Prubot::Application.new }
 
-  it 'will set the configured flag once configured' do
-    app = Prubot::Application.new
-    app.configure(id: 1, key: 'testkey', secret: 'testsecret')
-    expect(app.configured?).to eq true
-  end
+    it 'will hold valid configuration' do
+      expected_config = { id: 1, key: 'testkey', secret: 'testsecret' }
+      app.configure(**expected_config)
+      expect(app.config).to eq expected_config
+    end
 
-  it 'raises an error on unknown config' do
-    app = Prubot::Application.new
-    expect { app.configure(foo: 'bar') }.to raise_error(Prubot::Error)
-  end
+    it 'raises an error on unknown config' do
+      expect { app.configure(foo: 'bar') }.to raise_error(Prubot::Error)
+    end
 
-  it 'raises an error on missing config' do
-    app = Prubot::Application.new
-    expect { app.configure(id: 1) }.to raise_error(Prubot::Error)
+    it 'raises an error on missing config' do
+      expect { app.configure(id: 1) }.to raise_error(Prubot::Error)
+    end
   end
 
   context 'when handling events' do
