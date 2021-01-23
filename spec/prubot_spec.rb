@@ -25,12 +25,6 @@ RSpec.describe Prubot do
   describe '#configure' do
     subject(:app_container) { Prubot::Application.new }
 
-    it 'will hold valid configuration' do
-      expected_config = { id: 1, key: 'testkey', secret: 'testsecret' }
-      app_container.configure(**expected_config)
-      expect(app_container.config).to eq expected_config
-    end
-
     it 'raises an error on unknown config' do
       expect { app_container.configure(foo: 'bar') }.to raise_error(Prubot::Error)
     end
@@ -40,9 +34,10 @@ RSpec.describe Prubot do
     end
   end
 
-  context 'when handling events' do
+  context 'when handling synthetic events with no config' do
     subject(:app) do
       app_container = Prubot::Application.new
+      app_container.configure(id: 1, key: 'key', secret: false)
       app_container.register_event 'foo' do
         'foo event handled'
       end
@@ -129,6 +124,42 @@ RSpec.describe Prubot do
       event 'unknown', { action: 'unknown' }
 
       expect(json_response).to eq expected_response
+    end
+  end
+
+  context 'when handling event fixtures' do
+    subject(:app) do
+      app_container = Prubot::Application.new
+      app_container.configure(id: 1, key: 'key', secret: 'secret')
+      app_container.register_event 'issues' do
+        'issue handled'
+      end
+      app_container.app
+    end
+
+    def event_fixture(fname)
+      event_fname = File.join(File.dirname(__FILE__), 'event_fixtures', fname)
+      event_fp = File.open(event_fname)
+      event = event_fp.read
+      event_fp.close
+      event
+    end
+
+    def event(event, fixture, digest)
+      header 'Content-Type', 'application/json'
+      header 'X-GitHub-Event', event
+      header 'X-Hub-Signature-256', "sha256=#{digest}"
+      post '/', event_fixture(fixture)
+    end
+
+    it 'returns 200 for issues event' do
+      event 'issues', 'issues_hook.json',
+            '5700c0515bec05804df657c3ebbf5f9585701a9f0a2a5633ca2d6dbd375a63a2'
+      expect(last_response.ok?).to be(true)
+    end
+
+    it 'raises error for invalid signature' do
+      expect { event 'issues', 'issues_hook.json', 'bad-signature' }.to raise_error(Prubot::Error)
     end
   end
 end

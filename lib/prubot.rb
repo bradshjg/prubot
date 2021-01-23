@@ -5,8 +5,10 @@ require 'set'
 
 require 'rack'
 
+require 'prubot/config'
 require 'prubot/dispatcher'
 require 'prubot/handler'
+require 'prubot/registry'
 require 'prubot/version'
 
 # Prubot is a Ruby Probot (https://github.com/probot/probot) clone.
@@ -19,26 +21,24 @@ module Prubot
     attr_reader :app, :config
 
     def initialize
+      @config = Config.new
+      @registry = Registry.new
       @configured = false
-      @dispatcher = Dispatcher.new
+      @dispatcher = Dispatcher.new @config, @registry
       @app = Rack::Builder.new
       setup_routing
     end
 
     def configure(**kwds)
-      config_attrs = Set[:id, :key, :secret]
-      raise Error, "Valid config keys are #{config_attrs}" unless kwds.keys.to_set == config_attrs
-
-      @config = kwds
-      @configured = true
+      @config.set(**kwds)
     end
 
     def configured?
-      @configured
+      @config.configured?
     end
 
     def register_event(event, &block)
-      @dispatcher.register(event, block)
+      @registry.add(event, block)
     end
 
     private

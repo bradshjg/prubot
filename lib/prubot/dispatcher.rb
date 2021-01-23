@@ -1,20 +1,16 @@
 # frozen_string_literal: true
 
+require 'openssl'
+require 'rack'
+
 module Prubot
   # Prubot event dispatcher
   class Dispatcher
     EVENT_HEADER = 'HTTP_X_GITHUB_EVENT'
 
-    def initialize
-      @registry = {}
-    end
-
-    def register(event, block)
-      if @registry.key? event
-        @registry[event] << Handler.new(block)
-      else
-        @registry[event] = [Handler.new(block)]
-      end
+    def initialize(config, registry)
+      @config = config
+      @registry = registry
     end
 
     def call(env)
@@ -29,15 +25,35 @@ module Prubot
 
     private
 
+    def skip_verify?
+      @config.secret == false
+    end
+
     def validate_json_header(request)
       err_message = 'Invalid Content-Type HTTP header (must be application/json)'
       raise Error, err_message unless request.content_type == 'application/json'
     end
 
+    def verify_signature(request)
+      signature = request.env['HTTP_X_HUB_SIGNATURE_256']
+      request.body.rewind
+      payload_body = request.body.read
+      digest = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha256'), @config.secret, payload_body)
+      payload_digest = "sha256=#{digest}"
+      raise Error, "Signatures didn't match!" unless Rack::Utils.secure_compare(payload_digest,
+                                                                                signature)
+    end
+
     def validate_payload(request)
-      JSON.parse(request.body.read)
-    rescue JSON::JSONError
-      raise Error, 'Invalid HTTP body (must be JSON)'
+      begin
+        payload = JSON.parse(request.body.read)
+      rescue JSON::JSONError
+        raise Error, 'Invalid HTTP body (must be JSON)'
+      end
+
+      verify_signature request unless skip_verify?
+
+      payload
     end
 
     def validate_event(request)
@@ -59,8 +75,8 @@ module Prubot
     end
 
     def call_event_handlers(event_key, payload)
-      if @registry.key? event_key
-        result = @registry[event_key].map { |handler| handler.run payload }
+      if (handlers = @registry.get_handlers(event_key))
+        result = handlers.map { |handler| handler.run payload }
         hit = true
       else
         hit = false
