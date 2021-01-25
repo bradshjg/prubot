@@ -38,13 +38,13 @@ RSpec.describe Prubot do
     subject(:app) do
       app_container = Prubot::Application.new
       app_container.configure(id: 1, key: 'key', secret: false)
-      app_container.register_event 'foo' do
+      app_container.register_event 'foo handler', 'foo' do
         'foo event handled'
       end
-      app_container.register_event 'bar' do
+      app_container.register_event 'bar handler', 'bar' do
         'bar event handled'
       end
-      app_container.register_event 'foo.qux' do
+      app_container.register_event 'foo qux handler', 'foo', 'qux' do
         'qux action for foo event handled'
       end
       app_container.app
@@ -88,39 +88,38 @@ RSpec.describe Prubot do
       expect(last_response.not_found?).to be(true)
     end
 
-    it 'returns foo response for foo event' do
-      expected_response = { 'status' => 'OK', 'description' => { 'foo' => ['foo event handled'] } }
+    it 'returns response for foo event' do
+      expected_response = { 'event' => 'foo', 'action' => nil,
+                            'result' => { 'foo handler' => 'foo event handled' } }
       event 'foo'
       expect(json_response).to eq expected_response
     end
 
-    it 'bar event returns bar response' do
-      expected_response = { 'status' => 'OK', 'description' => { 'bar' => ['bar event handled'] } }
+    it 'returns response for bar event' do
+      expected_response = { 'event' => 'bar', 'action' => nil,
+                            'result' => { 'bar handler' => 'bar event handled' } }
       event 'bar'
       expect(json_response).to eq expected_response
     end
 
-    it 'foo event with qux action returns foo and foo.qux response' do
-      handler_responses = { 'foo' => ['foo event handled'],
-                            'foo.qux' => ['qux action for foo event handled'] }
-      expected_response = { 'status' => 'OK', 'description' => handler_responses }
+    it 'returns response for foo event with qux action' do
+      handler_responses = { 'foo handler' => 'foo event handled',
+                            'foo qux handler' => 'qux action for foo event handled' }
+      expected_response = { 'event' => 'foo', 'action' => 'qux', 'result' => handler_responses }
 
       event 'foo', { action: 'qux' }
       expect(json_response).to eq expected_response
     end
 
-    it 'unkown event returns unknown response' do
-      expected_response = { 'status' => 'MISS',
-                            'description' => { 'unknown' => 'no matching handlers' } }
+    it 'returns response for unknown event' do
+      expected_response = { 'action' => nil, 'event' => 'unknown', 'result' => {} }
       event 'unknown'
 
       expect(json_response).to eq expected_response
     end
 
-    it 'unkown event with unknown action returns unknown response' do
-      expected_response = { 'status' => 'MISS',
-                            'description' => { 'unknown' => 'no matching handlers',
-                                               'unknown.unknown' => 'no matching handlers' } }
+    it 'returns response for unkown event with unknown action' do
+      expected_response = { 'action' => 'unknown', 'event' => 'unknown', 'result' => {} }
       event 'unknown', { action: 'unknown' }
 
       expect(json_response).to eq expected_response
@@ -131,7 +130,7 @@ RSpec.describe Prubot do
     subject(:app) do
       app_container = Prubot::Application.new
       app_container.configure(id: 1, key: 'key', secret: 'secret')
-      app_container.register_event 'issues' do
+      app_container.register_event 'handle issue', 'issues' do
         'issue handled'
       end
       app_container.app

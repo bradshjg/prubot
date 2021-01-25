@@ -3,9 +3,10 @@
 module Prubot
   # Prubot event handler boilerplate
   class Handler
-    attr_reader :payload
+    attr_reader :name, :payload
 
-    def initialize(block)
+    def initialize(name, block)
+      @name = name
       @block = block
       @payload = nil
     end

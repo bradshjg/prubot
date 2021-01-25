@@ -37,8 +37,10 @@ module Prubot
       @config.configured?
     end
 
-    def register_event(event, &block)
-      @registry.add(event, block)
+    def register_event(name, event, action = nil, &block)
+      raise Error 'block required' unless block
+
+      @registry.add(event, action, Handler.new(name, block))
     end
 
     private

@@ -7,16 +7,22 @@ module Prubot
       @registry = {}
     end
 
-    def add(event, block)
-      if @registry.key? event
-        @registry[event] << Handler.new(block)
+    def add(event, action, handler)
+      if @registry.key? [event, action]
+        @registry[[event, action]] << handler
       else
-        @registry[event] = [Handler.new(block)]
+        @registry[[event, action]] = [handler]
       end
     end
 
-    def get_handlers(event_key)
-      @registry[event_key]
+    def resolve(event, action)
+      handlers = []
+
+      handlers.concat @registry[[event, nil]] if @registry.key? [event, nil]
+
+      handlers.concat @registry[[event, action]] if action && @registry.key?([event, action])
+
+      handlers
     end
   end
 end

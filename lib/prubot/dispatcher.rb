@@ -18,9 +18,9 @@ module Prubot
 
       event, action, payload = validate request
 
-      hit, result = call_handlers event, action, payload
+      result = call_handlers event, action, payload
 
-      generate_response hit, result
+      generate_response event, action, result
     end
 
     private
@@ -74,43 +74,16 @@ module Prubot
       [event, action, payload]
     end
 
-    def call_event_handlers(event_key, payload)
-      if (handlers = @registry.get_handlers(event_key))
-        result = handlers.map { |handler| handler.run payload }
-        hit = true
-      else
-        hit = false
-        result = 'no matching handlers'
-      end
-
-      [hit, result]
-    end
-
     def call_handlers(event, action, payload)
-      result = {}
+      handlers = @registry.resolve event, action
 
-      event_hit, event_result = call_event_handlers event, payload
-      result[event] = event_result
-
-      if action
-        event_action = [event, action].join('.')
-        action_hit, action_result = call_event_handlers event_action, payload
-        result[event_action] = action_result
-      end
-
-      hit = event_hit || action_hit
-
-      [hit, result]
+      handlers.map { |handler| [handler.name, handler.run(payload)] }.to_h
     end
 
-    def generate_response(hit, result)
-      if hit == true
-        response_body = JSON.generate({ status: 'OK', description: result })
-        status = 200
-      else
-        response_body = JSON.generate({ status: 'MISS', description: result })
-        status = 404
-      end
+    def generate_response(event, action, result)
+      status = result.empty? ? 404 : 200
+
+      response_body = JSON.generate({ event: event, action: action, result: result })
 
       [status, { 'Content-Type' => 'application/json' }, [response_body]]
     end
