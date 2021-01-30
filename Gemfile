@@ -17,3 +17,5 @@ gem 'rack-test', '~> 1.1'
 gem 'rubocop-performance', '~> 1.9'
 
 gem 'rubocop-rspec', '~> 2.1'
+
+gem 'jwt', '~> 2.2'

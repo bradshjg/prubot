@@ -2,7 +2,7 @@
 
 RSpec.describe Prubot::Handler do
   def fixture(event)
-    fname = File.dirname(__FILE__) + "/../event_fixtures/#{event}_hook.json"
+    fname = File.dirname(__FILE__) + "/../fixtures/#{event}_hook.json"
     JSON.parse(File.read(fname))
   end
 

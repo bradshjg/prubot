@@ -3,16 +3,18 @@
 module Prubot
   # Prubot event handler boilerplate
   class Handler
-    attr_reader :name, :payload
+    attr_reader :client, :name, :payload
 
     def initialize(name, block)
       @name = name
       @block = block
       @payload = nil
+      @octokit = nil
     end
 
-    def run(payload)
+    def run(payload, client = nil)
       @payload = payload
+      @octokit = client
       instance_eval(&@block)
     end
 

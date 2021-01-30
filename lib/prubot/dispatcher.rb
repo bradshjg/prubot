@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'jwt'
+require 'octokit'
 require 'openssl'
 require 'rack'
 
@@ -18,7 +20,7 @@ module Prubot
 
       event, action, payload = validate request
 
-      result = call_handlers event, action, payload
+      result = call_handlers event, action, payload, new_client
 
       generate_response event, action, result
     end
@@ -74,10 +76,26 @@ module Prubot
       [event, action, payload]
     end
 
-    def call_handlers(event, action, payload)
+    def new_client
+      Octokit::Client.new(bearer_token: new_jwt_token) # TODO: think about caching
+    end
+
+    def new_jwt_token
+      private_key = OpenSSL::PKey::RSA.new(@config.key)
+
+      payload = {}.tap do |opts|
+        opts[:iat] = Time.now.to_i           # Issued at time.
+        opts[:exp] = opts[:iat] + 600        # JWT expiration time is 10 minutes from issued time.
+        opts[:iss] = @config.id # Integration's GitHub identifier.
+      end
+
+      JWT.encode(payload, private_key, 'RS256')
+    end
+
+    def call_handlers(event, action, payload, client)
       handlers = @registry.resolve event, action
 
-      handlers.map { |handler| [handler.name, handler.run(payload)] }.to_h
+      handlers.map { |handler| [handler.name, handler.run(payload, client)] }.to_h
     end
 
     def generate_response(event, action, result)

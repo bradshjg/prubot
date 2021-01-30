@@ -27,6 +27,7 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
+  spec.add_dependency 'jwt', '~> 2.2'
   spec.add_dependency 'octokit', '~> 4.0'
   spec.add_dependency 'rack', '~> 2.2'
 end

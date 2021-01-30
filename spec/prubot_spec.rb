@@ -5,6 +5,10 @@ require 'rack/test'
 RSpec.describe Prubot do
   include Rack::Test::Methods
 
+  def test_key
+    File.read("#{File.dirname(__FILE__)}/fixtures/test.pkey")
+  end
+
   it 'has a version number' do
     expect(Prubot::VERSION).not_to be nil
   end
@@ -17,7 +21,7 @@ RSpec.describe Prubot do
     end
 
     it 'is configured once configure is called' do
-      app_container.configure(id: 1, key: 'testkey', secret: 'testsecret')
+      app_container.configure(id: 1, key: test_key, secret: 'testsecret')
       expect(app_container.configured?).to eq true
     end
   end
@@ -37,7 +41,7 @@ RSpec.describe Prubot do
   context 'when handling synthetic events with no config' do
     subject(:app) do
       app_container = Prubot::Application.new
-      app_container.configure(id: 1, key: 'key', secret: false)
+      app_container.configure(id: 1, key: test_key, secret: false)
       app_container.register_event 'foo handler', 'foo' do
         'foo event handled'
       end
@@ -129,7 +133,7 @@ RSpec.describe Prubot do
   context 'when handling event fixtures' do
     subject(:app) do
       app_container = Prubot::Application.new
-      app_container.configure(id: 1, key: 'key', secret: 'secret')
+      app_container.configure(id: 1, key: test_key, secret: 'secret')
       app_container.register_event 'handle issue', 'issues' do
         'issue handled'
       end
@@ -137,7 +141,7 @@ RSpec.describe Prubot do
     end
 
     def event_fixture(fname)
-      event_fname = File.join(File.dirname(__FILE__), 'event_fixtures', fname)
+      event_fname = File.join(File.dirname(__FILE__), 'fixtures', fname)
       event_fp = File.open(event_fname)
       event = event_fp.read
       event_fp.close
