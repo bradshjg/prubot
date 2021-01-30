@@ -6,26 +6,50 @@ RSpec.describe Prubot::Handler do
     JSON.parse(File.read(fname))
   end
 
-  it 'extracts repo data' do
-    handler = described_class.new 'test repo', proc { repo }
-    expected = { owner: 'Codertocat', repo: 'Hello-World' }
-    expect(handler.run(fixture('issues'))).to eq expected
+  context 'when extracting repo data' do
+    it 'extracts data' do
+      handler = described_class.new 'test repo', proc { repo }
+      expected = { owner: 'Codertocat', repo: 'Hello-World' }
+      expect(handler.run(fixture('issues'))).to eq expected
+    end
+
+    it 'merges passed data' do
+      handler = described_class.new 'test repo', proc { repo({ body: 'howdy' }) }
+      expected = { owner: 'Codertocat', repo: 'Hello-World', body: 'howdy' }
+      expect(handler.run(fixture('issues'))).to eq expected
+    end
+
+    it 'raises if non-repo payload' do
+      handler = described_class.new 'test repo', proc { repo }
+      expect { handler.run(fixture('organization')) }.to raise_error(Prubot::Error)
+    end
   end
 
-  it 'extracts issue data' do
-    handler = described_class.new 'test issue', proc { issue }
-    expected = { issue_number: 1, owner: 'Codertocat', repo: 'Hello-World' }
-    expect(handler.run(fixture('issues'))).to eq expected
+  context 'when extracting issue data' do
+    it 'extracts data' do
+      handler = described_class.new 'test issue', proc { issue }
+      expected = { issue_number: 1, owner: 'Codertocat', repo: 'Hello-World' }
+      expect(handler.run(fixture('issues'))).to eq expected
+    end
+
+    it 'merges passed data' do
+      handler = described_class.new 'test issue', proc { issue({ body: 'howdy' }) }
+      expected = { issue_number: 1, owner: 'Codertocat', repo: 'Hello-World', body: 'howdy' }
+      expect(handler.run(fixture('issues'))).to eq expected
+    end
   end
 
-  it 'extracts pull_request data' do
-    handler = described_class.new 'test pull_request', proc { pull_request }
-    expected = { pull_number: 2, owner: 'Codertocat', repo: 'Hello-World' }
-    expect(handler.run(fixture('pull_request'))).to eq expected
-  end
+  context 'when extracting pull request data' do
+    it 'extracts data' do
+      handler = described_class.new 'test pull_request', proc { pull_request }
+      expected = { pull_number: 2, owner: 'Codertocat', repo: 'Hello-World' }
+      expect(handler.run(fixture('pull_request'))).to eq expected
+    end
 
-  it 'raises if missing repo data requested' do
-    handler = described_class.new 'test repo', proc { repo }
-    expect { handler.run(fixture('organization')) }.to raise_error(Prubot::Error)
+    it 'merges passed data' do
+      handler = described_class.new 'test pull_request', proc { pull_request({ body: 'howdy' }) }
+      expected = { pull_number: 2, owner: 'Codertocat', repo: 'Hello-World', body: 'howdy' }
+      expect(handler.run(fixture('pull_request'))).to eq expected
+    end
   end
 end
