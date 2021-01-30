@@ -13,7 +13,6 @@ AllCops:
     - 'tmp/**/*'
     - '.git/**/*'
     - 'bin/*'
-    - 'examples/**/*'
   TargetRubyVersion: 2.4
   SuggestExtensions: false
 
