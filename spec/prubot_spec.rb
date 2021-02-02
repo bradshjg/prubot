@@ -41,7 +41,7 @@ RSpec.describe Prubot do
   context 'when handling synthetic events with no config' do
     subject(:app) do
       app_container = Prubot::Application.new
-      app_container.configure(id: 1, key: test_key, secret: false)
+      app_container.configure(id: 1, key: test_key)
       app_container.register_event 'foo handler', 'foo' do
         'foo event handled'
       end

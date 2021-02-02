@@ -19,3 +19,5 @@ gem 'rubocop-performance', '~> 1.9'
 gem 'rubocop-rspec', '~> 2.1'
 
 gem 'jwt', '~> 2.2'
+
+gem "dotenv", "~> 2.7"
