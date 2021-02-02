@@ -29,10 +29,6 @@ module Prubot
       setup_routing
     end
 
-    def configure(**kwds)
-      @config.set(**kwds)
-    end
-
     def configured?
       @config.configured?
     end

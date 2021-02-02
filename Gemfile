@@ -20,4 +20,4 @@ gem 'rubocop-rspec', '~> 2.1'
 
 gem 'jwt', '~> 2.2'
 
-gem "dotenv", "~> 2.7"
+gem 'dotenv', '~> 2.7'

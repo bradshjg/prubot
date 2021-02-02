@@ -13,35 +13,10 @@ RSpec.describe Prubot do
     expect(Prubot::VERSION).not_to be nil
   end
 
-  describe '#configured?' do
-    subject(:app_container) { Prubot::Application.new }
-
-    it 'is instantiated unconfigured' do
-      expect(app_container.configured?).to eq false
-    end
-
-    it 'is configured once configure is called' do
-      app_container.configure(id: 1, key: test_key, secret: 'testsecret')
-      expect(app_container.configured?).to eq true
-    end
-  end
-
-  describe '#configure' do
-    subject(:app_container) { Prubot::Application.new }
-
-    it 'raises an error on unknown config' do
-      expect { app_container.configure(foo: 'bar') }.to raise_error(Prubot::Error)
-    end
-
-    it 'raises an error on missing config' do
-      expect { app_container.configure(id: 1) }.to raise_error(Prubot::Error)
-    end
-  end
-
   context 'when handling synthetic events with no config' do
     subject(:app) do
       app_container = Prubot::Application.new
-      app_container.configure(id: 1, key: test_key)
+      app_container.config.set(id: 1, key: test_key)
       app_container.register_event 'foo handler', 'foo' do
         'foo event handled'
       end
@@ -133,7 +108,7 @@ RSpec.describe Prubot do
   context 'when handling event fixtures' do
     subject(:app) do
       app_container = Prubot::Application.new
-      app_container.configure(id: 1, key: test_key, secret: 'secret')
+      app_container.config.set(id: 1, key: test_key, secret: 'secret')
       app_container.register_event 'handle issue', 'issues' do
         'issue handled'
       end

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'dotenv'
 
 module Prubot
@@ -11,7 +12,6 @@ module Prubot
   # In order to support the GitHub App Manifest Flow, +set+ can be used to dynamically update the
   # config, and +dump+ can be used to create a +.env+ file of the current config in the current
   # working directory.
-
   class Config
     ID = 'PRUBOT_ID'
     KEY = 'PRUBOT_KEY'
@@ -33,22 +33,24 @@ module Prubot
       ENV.fetch(SECRET, false)
     end
 
-
     def set(**kwds)
       valid = Set[:id, :key, :secret]
       required = Set[:id, :key]
       kwds_key_set = kwds.keys.to_set
+
       raise Error, "Valid config keys are #{valid}" unless kwds_key_set.subset?(valid)
+
       raise Error, "Required config keys are #{required}" unless required.subset?(kwds_key_set)
+
       ENV[ID] = kwds[:id].to_s
       ENV[KEY] = kwds[:key]
       ENV[SECRET] = kwds[:secret]
     end
 
     def dump
-      raise Error, "App configuration must be set before it can be dumped" unless configured?
+      raise Error, 'App configuration must be set before it can be dumped' unless configured?
 
-      File.open(".env", "w") do |env_file|
+      File.open('.env', 'w') do |env_file|
         env_file.puts "#{ID}=#{id}"
         env_file.puts "#{KEY}=#{key}"
         env_file.puts "#{SECRET}=#{secret}"
@@ -59,7 +61,7 @@ module Prubot
       id
       key
       secret
-    rescue
+    rescue KeyError
       false
     else
       true
