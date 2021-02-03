@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'prubot'
 
 on 'test-event', 'say howdy' do

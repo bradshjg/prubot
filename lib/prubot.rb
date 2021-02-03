@@ -37,7 +37,7 @@ module Prubot
     end
 
     def run?
-      $0 == 'app.rb' # HACK HACK HACK need to decide how we want to handle this.
+      $PROGRAM_NAME == 'app.rb' # HACK: HACK HACK need to decide how we want to handle this.
     end
 
     def register_event(name, event, action = nil, &block)
@@ -56,8 +56,10 @@ module Prubot
     end
   end
 
+  ##
+  # Prubot DSL
   module DSL
-    @@app = Prubot::Application.new
+    @@app = Prubot::Application.new # rubocop:disable Style/ClassVars
 
     ##
     # Supports both +on 'event' 'description' do...+ and +on 'action', 'event', 'description' do...+
@@ -70,7 +72,8 @@ module Prubot
       when 3
         @@app.register_event(args[2], args[1], args[0], &block)
       else
-        raise Prubot::Error 'on supports either "on <event> <description> do..." or "on <action> <event> <description> do..."'
+        raise Prubot::Error 'on supports either "on <event> <description> do..." or '\
+        '"on <action> <event> <description> do..."'
       end
     end
 
@@ -78,4 +81,4 @@ module Prubot
   end
 end
 
-extend Prubot::DSL
+extend Prubot::DSL # rubocop:disable Style/MixinUsage

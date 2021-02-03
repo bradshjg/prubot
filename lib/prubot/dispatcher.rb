@@ -23,7 +23,7 @@ module Prubot
 
     private
 
-    def register_app(request)
+    def register_app(_request)
       [200, { 'Content-Type' => 'text/html' }, ['howdy']]
     end
 
@@ -34,7 +34,6 @@ module Prubot
 
       generate_response event, action, result
     end
-
 
     def skip_verify?
       @config.secret == false
