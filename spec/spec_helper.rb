@@ -4,6 +4,8 @@ require 'bundler/setup'
 require 'prubot'
 
 RSpec.configure do |config|
+  # HACK HACK HACK clean up environment after every test (sigh)
+  config.after  { ENV.delete_if { |k, _v| k.start_with?('PRUBOT') } }
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = '.rspec_status'
 

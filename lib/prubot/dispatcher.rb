@@ -18,6 +18,16 @@ module Prubot
     def call(env)
       request = Rack::Request.new(env)
 
+      @config.configured? ? handle_event(request) : register_app(request)
+    end
+
+    private
+
+    def register_app(request)
+      [200, { 'Content-Type' => 'text/html' }, ['howdy']]
+    end
+
+    def handle_event(request)
       event, action, payload = validate request
 
       result = call_handlers event, action, payload, new_client
@@ -25,7 +35,6 @@ module Prubot
       generate_response event, action, result
     end
 
-    private
 
     def skip_verify?
       @config.secret == false

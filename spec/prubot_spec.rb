@@ -140,4 +140,16 @@ RSpec.describe Prubot do
       expect { event 'issues', 'issues_hook.json', 'bad-signature' }.to raise_error(Prubot::Error)
     end
   end
+
+  context 'when handling app registration' do
+    subject(:app) do
+      app_container = Prubot::Application.new
+      app_container.app
+    end
+
+    it 'returns howdy' do
+      get '/'
+      expect(last_response.body).to eq 'howdy'
+    end
+  end
 end

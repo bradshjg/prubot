@@ -23,7 +23,6 @@ module Prubot
     def initialize
       @config = Config.new
       @registry = Registry.new
-      @configured = false
       @dispatcher = Dispatcher.new @config, @registry
       @app = Rack::Builder.new
       setup_routing
