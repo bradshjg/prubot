@@ -32,6 +32,14 @@ module Prubot
       @config.configured?
     end
 
+    def run!
+      Rack::Handler::WEBrick.run(app)
+    end
+
+    def run?
+      $0 == 'app.rb' # HACK HACK HACK need to decide how we want to handle this.
+    end
+
     def register_event(name, event, action = nil, &block)
       raise Error 'block required' unless block
 
@@ -47,4 +55,27 @@ module Prubot
       end
     end
   end
+
+  module DSL
+    @@app = Prubot::Application.new
+
+    ##
+    # Supports both +on 'event' 'description' do...+ and +on 'action', 'event', 'description' do...+
+    # based on the number of arguments passed. We are careful to flip the arguments around based
+    # on the signature of the event registration method.
+    def on(*args, &block)
+      case args.length
+      when 2
+        @@app.register_event(args[1], args[0], &block)
+      when 3
+        @@app.register_event(args[2], args[1], args[0], &block)
+      else
+        raise Prubot::Error 'on supports either "on <event> <description> do..." or "on <action> <event> <description> do..."'
+      end
+    end
+
+    at_exit { @@app.run! if @@app.run? }
+  end
 end
+
+extend Prubot::DSL

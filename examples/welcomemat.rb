@@ -2,7 +2,7 @@
 
 require 'prubot'
 
-on 'issues', 'opened', 'add a welcome message' do
+on 'opened', 'issues', 'add a welcome message' do
   # `payload` is a hash of the event payload.
   discussions_link = payload['repository']['discussions_url']
   welcome_message = 'Thanks for stopping by :wave:. While we work on getting back to you '\
